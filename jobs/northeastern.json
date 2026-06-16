@@ -1,0 +1,13 @@
+{
+  "company": "Northeastern_University",
+  "role": "Machine_Learning_Engineer_AISH",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with production MLOps experience building ML deployment pipelines, inference services, and monitoring infrastructure. Containerized and deployed model inference on Kubernetes with Docker, maintained CI/CD pipelines with GitHub Actions automating builds and deployments on every merge, and built FastAPI-based inference APIs for real-time ML serving. Experienced debugging production ML issues, implementing evaluation frameworks for model validation, and deploying LLM-powered agentic systems on AWS and GCP.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "MLOps, LLMs, Agentic AI, Retrieval-Augmented Generation (RAG), LangChain, PyTorch, TensorFlow, HuggingFace Transformers, Model Deployment, Model Evaluation, NLP, Computer Vision, OpenAI API, Anthropic Claude API, Prompt Engineering, Vector Embeddings",
+    "infra":     "Docker, Kubernetes, CI/CD (GitHub Actions), FastAPI, AWS, GCP, Model Serving, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

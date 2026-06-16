@@ -1,0 +1,13 @@
+{
+  "company": "Nuro",
+  "role": "Software_Engineer_AI_Platform",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology (graduating May 2026) with hands-on experience building data pipelines, ML systems, and containerized infrastructure in production. Developed a YOLO-based computer vision pipeline containerized with Docker and deployed on Kubernetes for scalable inference, built data augmentation pipelines that scaled training datasets from hundreds to 10,000+ samples, and shipped a production RAG system with semantic search using vector embeddings and Pinecone. Comfortable working across data infrastructure, model deployment, and cloud systems in fast-moving engineering environments.",
+
+  "skills": {
+    "languages": "Python, C++ (familiar), TypeScript, JavaScript, SQL, Go, Java (familiar)",
+    "ml":        "Computer Vision, Object Detection, YOLO, PyTorch, TensorFlow, Scikit-learn, Machine Learning, Retrieval-Augmented Generation (RAG), Vector Embeddings, Semantic Search, NLP, LLMs, HuggingFace Transformers",
+    "infra":     "Docker, Kubernetes, CI/CD (GitHub Actions), AWS, GCP, Distributed Systems, Data Pipelines, PostgreSQL, Pinecone, FastAPI, RESTful APIs, Supabase, Railway, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "company": "Unity",
+  "role": "Machine_Learning_Engineer_Offline_Infrastructure",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with hands-on experience building data pipelines, training ML models, and deploying distributed infrastructure in production. Built a data augmentation pipeline scaling training datasets from hundreds to 10,000+ samples, containerized and deployed model inference on Kubernetes for distributed workloads, and maintained a CI/CD pipeline with 35+ automated tests ensuring reproducibility across every build. Experienced with PyTorch and TensorFlow across computer vision and NLP tasks, and comfortable translating research ideas into reliable, scalable production systems.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "PyTorch, TensorFlow, Scikit-learn, XGBoost, HuggingFace Transformers, Distributed Training, Data Pipelines, Dataset Validation, Computer Vision, Object Detection, NLP, LLMs, Retrieval-Augmented Generation (RAG), Vector Embeddings",
+    "infra":     "Docker, Kubernetes, CI/CD (GitHub Actions), AWS, GCP, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "company": "Artlogic",
+  "role": "Data_Engineer",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with hands-on experience building ETL pipelines, cleaning and transforming large-scale datasets, and designing relational database schemas for production systems. Built a data augmentation pipeline scaling training datasets from hundreds to 10,000+ samples with automated validation and edge case handling, designed normalized SQL schemas to store and query model outputs and metadata, and maintained automated test suites with 35+ tests ensuring data accuracy across every deployment. Proficient in Python with Pandas and NumPy for data transformation, and experienced working with REST APIs and JSON data formats.",
+
+  "skills": {
+    "languages": "Python, SQL, TypeScript, JavaScript, Go, Java (familiar), C++ (familiar)",
+    "ml":        "Pandas, NumPy, Scikit-learn, XGBoost, PyTorch, TensorFlow, HuggingFace Transformers, NLP, LLMs, Retrieval-Augmented Generation (RAG), LangChain, Vector Embeddings, SHAP",
+    "infra":     "ETL Pipelines, Docker, Kubernetes, CI/CD (GitHub Actions), FastAPI, RESTful APIs, JSON, PostgreSQL, Supabase, AWS, GCP, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

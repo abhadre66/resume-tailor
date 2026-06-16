@@ -1,0 +1,13 @@
+{
+  "company": "Corvic_AI",
+  "role": "ML_Engineer_AI_Platform",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with production experience deploying ML models, building retrieval systems, and designing evaluation frameworks at scale. Fine-tuned a DistilBERT transformer for text classification achieving 99.96% AUROC, built a production RAG system using OpenAI embeddings, Pinecone vector search, and LangChain with end-to-end inference pipelines, and developed evaluation frameworks including a 55-question domain benchmark and automated test suites validating model behavior across deployments. Proficient in Python and PyTorch with hands-on cloud deployment experience on GCP and AWS.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "PyTorch, TensorFlow, HuggingFace Transformers, Model Fine-tuning, NLP, Embedding Models, Retrieval Systems, Retrieval-Augmented Generation (RAG), LangChain, LLMs, OpenAI API, Anthropic Claude API, Multimodal Learning, Computer Vision, Evaluation Frameworks, SHAP, Vector Embeddings, Semantic Search",
+    "infra":     "ML Infrastructure, Docker, Kubernetes, CI/CD (GitHub Actions), GCP, AWS, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

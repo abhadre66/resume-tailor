@@ -1,0 +1,13 @@
+{
+  "company": "Simulmedia",
+  "role": "Generative_AI_Analyst",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with hands-on experience researching, prototyping, and deploying generative AI systems into production. Built a real-time LLM-powered interview platform using Anthropic Claude and a production RAG developer tool using OpenAI GPT-4o-mini and HuggingFace embeddings. Experienced working across the full AI deployment lifecycle from proof-of-concept to live product, with a track record of communicating technical results clearly to non-technical stakeholders.",
+
+  "skills": {
+    "languages": "Python, JavaScript, TypeScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "Large Language Models (LLMs), Generative AI, Retrieval-Augmented Generation (RAG), OpenAI API, Anthropic Claude API, HuggingFace Transformers, LangChain, Prompt Engineering, NLP, Fine-tuning, Vector Embeddings, Semantic Search",
+    "infra":     "FastAPI, Express.js, Node.js, RESTful APIs, Docker, Kubernetes, CI/CD (GitHub Actions), PostgreSQL, Supabase, Pinecone, AWS, GCP, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

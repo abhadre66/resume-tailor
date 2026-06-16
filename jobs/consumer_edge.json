@@ -1,0 +1,13 @@
+{
+  "company": "Consumer_Edge",
+  "role": "Data_Analyst",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with strong analytical and data engineering skills applied to large, real-world datasets. Built SQL-backed data pipelines and normalized relational schemas to store and query model outputs at scale, processed and cleaned messy unstructured datasets scaling training data from hundreds to 10,000+ samples, and developed predictive models combining multiple data sources with rigorous evaluation using cross-validation and held-out test sets. Comfortable managing multiple concurrent projects independently and communicating technical findings clearly to both technical and non-technical audiences.",
+
+  "skills": {
+    "languages": "Python, SQL, TypeScript, JavaScript, Go, Java (familiar), C++ (familiar)",
+    "ml":        "Scikit-learn, XGBoost, PyTorch, TensorFlow, HuggingFace Transformers, NumPy, Pandas, Predictive Modeling, Feature Engineering, Model Evaluation, NLP, LLMs, Retrieval-Augmented Generation (RAG), SHAP, Explainable AI, Vector Embeddings",
+    "infra":     "Docker, Kubernetes, CI/CD (GitHub Actions), AWS, GCP, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

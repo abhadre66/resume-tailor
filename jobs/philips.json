@@ -1,0 +1,13 @@
+{
+  "company": "Philips",
+  "role": "Software_Test_Engineer",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with production experience building automated test suites, CI/CD pipelines, and quality frameworks for complex software systems. Maintained 35+ pytest unit and integration tests with GitHub Actions CI/CD automating builds and deployments on every merge, built a 55-question domain evaluation set to systematically validate AI system behavior, and developed data validation and quality checks across multiple production pipelines. Experienced translating technical requirements into testable scenarios, conducting code reviews, and delivering reliable software on tight timelines.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), LangChain, OpenAI API, Anthropic Claude API, PyTorch, TensorFlow, Scikit-learn, NLP, Prompt Engineering, Vector Embeddings",
+    "infra":     "CI/CD (GitHub Actions), Docker, Kubernetes, AWS, GCP, Test Automation, pytest, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, TypeScript, Tailwind CSS"
+  }
+}

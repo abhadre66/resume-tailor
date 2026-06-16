@@ -1,0 +1,13 @@
+{
+  "company": "Google",
+  "role": "ML Engineer",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology. I have built and deployed ML systems across computer vision, NLP, and LLM applications — including a YOLO pipeline on Kubernetes that improved accuracy by 30% and a RAG developer tool that is live in production. I am comfortable owning a model from data prep through deployment and care about building systems that scale reliably.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "PyTorch, TensorFlow, Scikit-learn, XGBoost, HuggingFace Transformers, LangChain, RAG, LLMs, Computer Vision, NLP, Prompt Engineering",
+    "infra":     "Docker, Kubernetes, GCP, AWS, CI/CD (GitHub Actions), FastAPI, Pinecone, FAISS, MySQL, Git",
+    "frontend":  "React, Next.js, Tailwind CSS"
+  }
+}

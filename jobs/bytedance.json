@@ -1,0 +1,13 @@
+{
+  "company": "ByteDance",
+  "role": "Software_Engineer_Graduate_Cloud_Infrastructure",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology (graduating May 2026) with production experience building and operating cloud-native infrastructure for ML workloads. Containerized and deployed model inference services on Kubernetes for horizontal scaling under variable load, maintained CI/CD pipelines automating builds and deployments across distributed environments, and built scalable backend services on AWS and GCP supporting high-throughput AI applications. Proficient in Python and Go with a strong foundation in distributed systems, Linux environments, and large-scale software development.",
+
+  "skills": {
+    "languages": "Python, Go, TypeScript, JavaScript, SQL, C++ (familiar), Java (familiar)",
+    "ml":        "Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), LangChain, OpenAI API, Anthropic Claude API, PyTorch, TensorFlow, NLP, Computer Vision, Prompt Engineering, Vector Embeddings",
+    "infra":     "Kubernetes, Docker, Cloud-Native Infrastructure, Distributed Systems, CI/CD (GitHub Actions), AWS, GCP, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Linux, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

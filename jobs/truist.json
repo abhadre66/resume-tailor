@@ -1,0 +1,13 @@
+{
+  "company": "Truist",
+  "role": "Data_Scientist_I_Card_Fraud_Analytics",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with strong statistical and machine learning foundations applied to real-world classification and anomaly detection problems. Trained a weighted ensemble combining XGBoost with fine-tuned DistilBERT achieving 99.96% AUROC on a held-out evaluation set, conducted systematic model comparisons using ROC curves, confusion matrices, and SHAP feature importance analysis, and designed normalized SQL schemas for storing and querying large-scale model outputs and metadata. Proficient in Python with Pandas, Scikit-learn, and XGBoost for data extraction, feature engineering, and predictive modeling.",
+
+  "skills": {
+    "languages": "Python, SQL, TypeScript, JavaScript, Go, Java (familiar), C++ (familiar)",
+    "ml":        "Scikit-learn, XGBoost, PyTorch, TensorFlow, HuggingFace Transformers, NumPy, Pandas, Predictive Modeling, Statistical Analysis, Feature Engineering, Model Evaluation, SHAP, Explainable AI, NLP, LLMs, Retrieval-Augmented Generation (RAG), Vector Embeddings",
+    "infra":     "Docker, Kubernetes, CI/CD (GitHub Actions), AWS, GCP, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

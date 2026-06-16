@@ -1,0 +1,59 @@
+{
+  "company": "Gotion_Inc",
+  "role": "Machine_Learning_Engineer",
+  "summary": "Machine Learning Engineer with hands-on experience designing and evaluating deep learning and ensemble model architectures, including transformers, object detection models, and retrieval-augmented generation systems. Proficient in Python with practical experience applying rigorous experimentation, benchmarking, and evaluation metrics across multiple model development cycles. Eager to bring algorithmic problem-solving skills and a strong foundation in ML model development to research challenges in battery technology and energy systems.",
+  "skills": {
+    "languages": "Python, SQL, JavaScript, TypeScript",
+    "ml": "PyTorch, TensorFlow, Scikit-learn, XGBoost, DistilBERT, HuggingFace Transformers, YOLO, LangChain, OpenAI API, Anthropic Claude, SHAP, Captum, RAG, LLM fine-tuning, evaluation metrics, ablation studies",
+    "infra": "Docker, Kubernetes, GCP, Railway, Supabase (PostgreSQL), GitHub Actions CI/CD, Vercel",
+    "frontend": "Next.js, React"
+  },
+  "experience": [
+    {
+      "company": "RAWATTECH",
+      "title": "Deep Learning Intern",
+      "dates": "Sep 2022 – May 2023",
+      "bullets": [
+        "Developed a YOLO-based deep learning object detection model in Python to detect and classify industrial pipe inventory from warehouse images, improving accuracy by 30% and eliminating a fully manual counting process.",
+        "Built a data augmentation pipeline using NumPy and Pandas, scaling the training dataset from a few hundred to 10,000+ images and manually re-annotating 500+ edge cases; accuracy improved from 65% to 85.4% on held-out evaluation data, demonstrating rigorous benchmarking and iterative model improvement.",
+        "Containerized the model with Docker and deployed on Kubernetes for horizontal scaling of model inference, enabling the team to handle variable load without code changes.",
+        "Designed normalized relational database schemas in SQL to store image metadata and inference results, enabling cross-team queries on model performance and inventory trends."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "AI Interview Engine",
+      "subtitle": "Voice-First Candidate Screening Platform",
+      "stack": "Next.js, Express, Claude Sonnet/Haiku, Deepgram, Supabase, Railway, Vercel",
+      "link": "https://ai-interview-engine-ten.vercel.app/login",
+      "bullets": [
+        "Designed a multi-turn conversational AI engine with dynamic context injection: the LLM receives each candidate's parsed resume before the session and generates targeted, role-specific follow-up questions in real time, demonstrating practical application of large language model architectures.",
+        "Engineered a real-time voice pipeline integrating Deepgram Nova-2 (speech-to-text) and Aura (text-to-speech) with Claude Sonnet 4.6, achieving 4-5s end-to-end latency per conversational turn and replacing human interviewers for initial candidate screening.",
+        "Built an automated document ingestion pipeline (PDF parsing, Claude Haiku, MD5 deduplication caching) and a post-interview evaluation system scoring candidates across 4 dimensions with advance/hold/reject output; deployed full-stack on Railway, Vercel, and Supabase (PostgreSQL + Row-Level Security + Magic Link authentication) with Brevo SMTP for transactional email automation."
+      ]
+    },
+    {
+      "name": "CodeSyntax AI",
+      "subtitle": "Full-Stack RAG Developer Assistant",
+      "stack": "Python, FastAPI, Next.js, LangChain, Pinecone, Docker, GitHub Actions",
+      "link": "https://syntax-ai-rag.vercel.app",
+      "bullets": [
+        "Built a production retrieval-augmented generation (RAG) system using GPT-4o-mini with semantic search over Python Docs, RealPython, and StackOverflow, indexed in Pinecone via OpenAI vector embeddings, applying algorithmic design to improve response relevance.",
+        "Implemented an LLM-based query intent classifier and result re-ranker by source authority, plus multi-turn conversation support via LangChain chat-history condensing, both measurably reducing off-topic responses.",
+        "Maintained 35+ pytest unit tests and a 55-question domain evaluation set; GitHub Actions CI/CD pipeline builds the Docker image and deploys to Railway (API) and Vercel (frontend) on every merge to main."
+      ]
+    },
+    {
+      "name": "AuthentiText",
+      "subtitle": "AI-Generated Text Detection Engine",
+      "stack": "Python, XGBoost, DistilBERT, HuggingFace, GCP, Docker",
+      "link": "https://huggingface.co/spaces/Abhadre/AI-Text-detector",
+      "bullets": [
+        "Trained a weighted ensemble model combining XGBoost (21 hand-crafted linguistic features: perplexity, burstiness, lexical density) with a fine-tuned DistilBERT transformer, achieving 99.1% F1 and 99.96% AUROC on held-out test data.",
+        "Conducted systematic model comparison across four architectures (Logistic Regression, Random Forest, XGBoost, DistilBERT) using ROC curves, confusion matrices, and SHAP feature importance; integrated Captum token-level attribution heatmaps for explainable AI (XAI), demonstrating rigorous ablation and evaluation practices.",
+        "Trained on the merged HC3 corpus spanning Wikipedia, Reddit, medicine, and finance domains; deployed as a publicly accessible machine learning inference app on HuggingFace Spaces."
+      ]
+    }
+  ]
+}

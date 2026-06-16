@@ -1,0 +1,13 @@
+{
+  "company": "Sony_Interactive_Entertainment",
+  "role": "Software_Engineer_I",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with full-stack engineering experience building and deploying scalable web applications and backend services in production. Shipped a real-time AI interview platform with React, Next.js, Express, and PostgreSQL deployed on GCP and Railway, and a production RAG developer tool with a FastAPI backend, React frontend, and automated CI/CD on GitHub Actions. Experienced designing RESTful APIs, building telemetry and evaluation dashboards, and working across cloud infrastructure including Docker and Kubernetes.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), LangChain, OpenAI API, Anthropic Claude API, HuggingFace Transformers, Prompt Engineering, NLP, Vector Embeddings",
+    "infra":     "Docker, Kubernetes, GCP, AWS, CI/CD (GitHub Actions), Node.js, FastAPI, Express.js, RESTful APIs, Microservices, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, TypeScript, Tailwind CSS"
+  }
+}

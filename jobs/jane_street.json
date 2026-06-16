@@ -1,0 +1,13 @@
+{
+  "company": "Jane_Street",
+  "role": "Machine_Learning_Researcher",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with strong mathematical foundations and hands-on experience training and evaluating deep learning models. Trained a weighted ensemble combining XGBoost with fine-tuned DistilBERT achieving 99.1% F1 and 99.96% AUROC, conducted systematic model comparisons across architectures using ROC curves and SHAP feature importance, and built production ML systems iterated rapidly from prototype to deployment. Intellectually curious about state-of-the-art ML research with a track record of translating research ideas into working systems.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "PyTorch, TensorFlow, Deep Learning, XGBoost, Scikit-learn, HuggingFace Transformers, Model Fine-tuning, NLP, Computer Vision, LLMs, Retrieval-Augmented Generation (RAG), LangChain, Prompt Engineering, SHAP, Explainable AI, Vector Embeddings",
+    "infra":     "Docker, Kubernetes, CI/CD (GitHub Actions), AWS, GCP, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}

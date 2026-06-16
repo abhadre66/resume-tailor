@@ -1,0 +1,13 @@
+{
+  "company": "Mbodi_AI",
+  "role": "Founding_ML_Engineer",
+
+  "summary": "M.S. in Artificial Intelligence from Illinois Institute of Technology with production experience training and deploying ML models across computer vision, NLP, and generative AI. Built and deployed a YOLO-based perception pipeline on Kubernetes with 30% accuracy improvement, trained a fine-tuned transformer ensemble achieving 99.96% AUROC, and shipped multiple LLM-powered agentic systems with evaluation workflows, data pipelines, and runtime APIs in production. Comfortable owning technical direction in ambiguous startup environments and building reliable, observable systems that connect models to real-world execution.",
+
+  "skills": {
+    "languages": "Python, TypeScript, JavaScript, SQL, Go, Java (familiar), C++ (familiar)",
+    "ml":        "PyTorch, TensorFlow, Transformers, HuggingFace, Computer Vision, Object Detection, YOLO, NLP, LLMs, Generative AI, Retrieval-Augmented Generation (RAG), LangChain, Agentic Systems, Imitation Learning, Model Fine-tuning, Prompt Engineering, Evaluation Pipelines, Vector Embeddings",
+    "infra":     "Docker, Kubernetes, CI/CD (GitHub Actions), AWS, GCP, FastAPI, RESTful APIs, PostgreSQL, Supabase, Pinecone, Railway, Vercel, Git",
+    "frontend":  "React, Next.js, Tailwind CSS, TypeScript"
+  }
+}
