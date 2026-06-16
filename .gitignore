@@ -18,6 +18,10 @@ resumes/
 # Job configs (personal, not part of source)
 jobs/
 
+# Personal CLI scripts
+tailor.js
+generate_resume.js
+
 # Planning and internal docs
 PIPELINE.md
 LOGIC_IMPROVEMENTS.md
