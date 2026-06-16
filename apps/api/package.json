@@ -18,6 +18,7 @@
     "express": "^5.2.1",
     "multer": "^2.2.0",
     "pdf2json": "^4.0.3",
+    "pdfjs-dist": "^6.0.227",
     "puppeteer": "^25.1.0"
   },
   "devDependencies": {

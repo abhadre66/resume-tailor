@@ -52,6 +52,7 @@ function ResultsContent() {
   const [original, setOriginal] = useState<ResumeData | null>(null)
   const [atsScore, setAtsScore] = useState<number | null>(null)
   const [atsDetails, setAtsDetails] = useState<AtsDetails | null>(null)
+  const [resolvedDownloadUrl, setResolvedDownloadUrl] = useState<string | null>(downloadUrl)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const [tab, setTab] = useState<'preview' | 'changes'>('preview')
@@ -61,7 +62,7 @@ function ResultsContent() {
       const supabase = createClient()
       const { data } = await supabase
         .from('applications')
-        .select('tailored_json, original_json, company, role, ats_score, ats_details')
+        .select('tailored_json, original_json, company, role, ats_score, ats_details, pdf_url')
         .eq('id', params.id)
         .single()
       if (data) {
@@ -69,17 +70,30 @@ function ResultsContent() {
         setOriginal(data.original_json)
         if (data.ats_score != null) setAtsScore(data.ats_score)
         if (data.ats_details) setAtsDetails(data.ats_details)
+
+        // Generate a fresh signed URL via API if we arrived without one (e.g. via View link)
+        if (!downloadUrl && data.pdf_url) {
+          const { data: { session } } = await supabase.auth.getSession()
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+          const dlRes = await fetch(`${apiUrl}/api/application/${params.id}/download-url`, {
+            headers: { Authorization: `Bearer ${session?.access_token}` },
+          })
+          if (dlRes.ok) {
+            const dlData = await dlRes.json()
+            setResolvedDownloadUrl(dlData.downloadUrl)
+          }
+        }
       }
       setLoading(false)
     }
     load()
-  }, [params.id])
+  }, [params.id, downloadUrl])
 
   async function handleDownload() {
-    if (!downloadUrl) return
+    if (!resolvedDownloadUrl) return
     setDownloading(true)
     const a = document.createElement('a')
-    a.href = downloadUrl
+    a.href = resolvedDownloadUrl
     a.download = `Resume_${tailored?.company}_${tailored?.role}.pdf`
     a.click()
     setDownloading(false)
@@ -113,7 +127,7 @@ function ResultsContent() {
         </div>
         <button
           onClick={handleDownload}
-          disabled={!downloadUrl || downloading}
+          disabled={!resolvedDownloadUrl || downloading}
           className="bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-xl transition flex items-center gap-2 text-sm"
         >
           {downloading ? 'Downloading...' : '↓ Download PDF'}
@@ -250,7 +264,7 @@ function ResultsContent() {
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleDownload}
-            disabled={!downloadUrl || downloading}
+            disabled={!resolvedDownloadUrl || downloading}
             className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-xl transition"
           >
             {downloading ? 'Downloading...' : '↓ Download Tailored PDF'}

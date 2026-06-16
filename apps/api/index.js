@@ -5,6 +5,11 @@ const multer = require('multer')
 const PDFParser = require('pdf2json')
 const { createClient } = require('@supabase/supabase-js')
 const Anthropic = require('@anthropic-ai/sdk')
+let pdfjsLib = null
+async function getPdfjs() {
+  if (!pdfjsLib) pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  return pdfjsLib
+}
 
 const app = express()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
@@ -18,6 +23,30 @@ const supabase = createClient(
 )
 
 const anthropic = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+// ── Extract hyperlink URLs from PDF annotations ───────────────
+async function extractPdfLinks(buffer) {
+  try {
+    const { getDocument } = await getPdfjs()
+    const data = new Uint8Array(buffer)
+    const doc = await getDocument({ data, verbosity: 0 }).promise
+    const urls = new Set()
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i)
+      const annotations = await page.getAnnotations()
+      for (const ann of annotations) {
+        const url = ann.url || ann.unsafeUrl || ann.action?.url
+        if (ann.subtype === 'Link' && url) urls.add(url)
+      }
+    }
+    const result = [...urls]
+    console.log('PDF links extracted:', result)
+    return result
+  } catch (e) {
+    console.error('extractPdfLinks error:', e.message)
+    return []
+  }
+}
 
 // ── Auth helper ───────────────────────────────────────────────
 async function getUserFromRequest(req) {
@@ -42,12 +71,15 @@ app.post('/api/resume/upload', upload.single('file'), async (req, res) => {
     const file = req.file
     if (!file || !name?.trim()) return res.status(400).json({ error: 'Missing file or name' })
 
-    const rawText = await new Promise((resolve, reject) => {
-      const parser = new PDFParser(null, 1)
-      parser.on('pdfParser_dataReady', () => resolve(parser.getRawTextContent()))
-      parser.on('pdfParser_dataError', (err) => reject(new Error(err.parserError || 'PDF parsing failed')))
-      parser.parseBuffer(file.buffer)
-    })
+    const [rawText, pdfLinks] = await Promise.all([
+      new Promise((resolve, reject) => {
+        const parser = new PDFParser(null, 1)
+        parser.on('pdfParser_dataReady', () => resolve(parser.getRawTextContent()))
+        parser.on('pdfParser_dataError', (err) => reject(new Error(err.parserError || 'PDF parsing failed')))
+        parser.parseBuffer(file.buffer)
+      }),
+      extractPdfLinks(file.buffer),
+    ])
 
     // Ensure user row exists (handles users who signed up before trigger was created)
     await supabase.from('users').upsert(
@@ -68,6 +100,10 @@ app.post('/api/resume/upload', upload.single('file'), async (req, res) => {
 
 RESUME TEXT:
 ${rawText.slice(0, 6000)}
+
+${pdfLinks.length > 0 ? `HYPERLINKS EXTRACTED FROM PDF (use these for linkedin, github, portfolio, and project links):
+${pdfLinks.join('\n')}
+` : ''}
 
 Return this exact structure:
 {
@@ -135,7 +171,7 @@ Return this exact structure:
 
     const { data, error: dbError } = await supabase
       .from('resumes')
-      .insert({ user_id: user.id, name: name.trim(), raw_text: rawText, file_url: filePath, parsed_json: parsedJson, profile })
+      .insert({ user_id: user.id, name: name.trim(), raw_text: rawText, file_url: filePath, parsed_json: parsedJson, profile, pdf_links: pdfLinks })
       .select()
       .single()
     if (dbError) throw new Error(`Database error: ${dbError.message}`)
@@ -195,6 +231,7 @@ RULES:
 - Never invent or fabricate achievements, metrics, or technologies the candidate did not use
 - Only reorder bullets, lightly rephrase wording to emphasize relevant skills, and surface the most relevant content first
 - Keep all metrics exactly as they are
+- Keep project names, company names, and job titles exactly as they appear in the resume — do NOT add subtitles, descriptions, or extra text to them
 - The resume must read naturally, like a human wrote it
 - Do NOT use em dashes, en dashes, double hyphens (--), tilde (~), or fancy punctuation
 - Use plain punctuation only: commas, periods, semicolons, colons, parentheses, regular hyphens
@@ -203,6 +240,9 @@ RULES:
 CANDIDATE RESUME:
 ${resume.raw_text}
 
+${resume.parsed_json?.projects?.length ? `PROJECT LINKS (preserve these exactly in your output):
+${resume.parsed_json.projects.map(p => `- ${p.name}: ${p.link || 'null'}`).join('\n')}
+` : ''}
 JOB DESCRIPTION:
 ${jdText}
 
@@ -250,6 +290,30 @@ Return a JSON object with this exact structure:
       const match = raw.match(/\{[\s\S]*\}/)
       if (!match) throw new Error('Claude returned invalid JSON')
       tailored = JSON.parse(match[0])
+    }
+
+    // Preserve project links from parsed_json — pdf2json can't extract hyperlink URLs
+    // so Claude Sonnet won't have them in raw_text; merge them back in from upload-time parse
+    if (resume.parsed_json?.projects?.length) {
+      tailored.projects = tailored.projects?.map((proj, i) => ({
+        ...proj,
+        link: proj.link || resume.parsed_json.projects[i]?.link || null
+      }))
+    }
+
+    // Preserve contact links from profile into tailored_json so PDF builder has them
+    if (resume.profile) {
+      tailored._profile = {
+        name: resume.profile.name,
+        location: resume.profile.location,
+        phone: resume.profile.phone,
+        email: resume.profile.email,
+        linkedin: resume.profile.linkedin,
+        github: resume.profile.github,
+        portfolio: resume.profile.portfolio,
+        education: resume.profile.education,
+        certifications: resume.profile.certifications,
+      }
     }
 
     // ATS keyword scoring
@@ -307,6 +371,186 @@ Return ONLY valid JSON, no markdown:
   }
 })
 
+// ── Get / Save User Profile ───────────────────────────────────
+app.get('/api/profile', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+    const { data } = await supabase.from('users').select('profile').eq('id', user.id).single()
+    res.json({ profile: data?.profile || null })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.put('/api/profile', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+    const { profile } = req.body
+    if (!profile) return res.status(400).json({ error: 'Missing profile' })
+    await supabase.from('users').update({ profile }).eq('id', user.id)
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Get fresh download URL ────────────────────────────────────
+app.get('/api/application/:id/download-url', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { data: application, error } = await supabase
+      .from('applications')
+      .select('pdf_url')
+      .eq('id', req.params.id)
+      .eq('user_id', user.id)
+      .single()
+    if (error || !application) return res.status(404).json({ error: 'Application not found' })
+    if (!application.pdf_url) return res.status(404).json({ error: 'No PDF found for this application' })
+
+    const { data: signed, error: signedError } = await supabase.storage
+      .from('resumes-generated')
+      .createSignedUrl(application.pdf_url, 3600)
+    if (signedError) throw new Error(signedError.message)
+
+    res.json({ downloadUrl: signed.signedUrl })
+  } catch (err) {
+    console.error('Download URL error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Delete Application ────────────────────────────────────────
+app.delete('/api/application/:id', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { id } = req.params
+
+    const { data: app, error: fetchError } = await supabase
+      .from('applications')
+      .select('pdf_url')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single()
+    if (fetchError || !app) return res.status(404).json({ error: 'Application not found' })
+
+    if (app.pdf_url) {
+      await supabase.storage.from('resumes-generated').remove([app.pdf_url])
+    }
+
+    const { error: delError } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+    if (delError) throw new Error(delError.message)
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Delete application error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Delete Resume ─────────────────────────────────────────────
+app.delete('/api/resume/:id', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { id } = req.params
+
+    const { data: resume, error: fetchError } = await supabase
+      .from('resumes')
+      .select('file_url')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single()
+    if (fetchError || !resume) return res.status(404).json({ error: 'Resume not found' })
+
+    // Delete all associated applications and their PDFs first
+    const { data: apps } = await supabase
+      .from('applications')
+      .select('pdf_url')
+      .eq('resume_id', id)
+      .eq('user_id', user.id)
+    if (apps?.length) {
+      const paths = apps.map(a => a.pdf_url).filter(Boolean)
+      if (paths.length) await supabase.storage.from('resumes-generated').remove(paths)
+      await supabase.from('applications').delete().eq('resume_id', id).eq('user_id', user.id)
+    }
+
+    if (resume.file_url) {
+      await supabase.storage.from('resumes-uploaded').remove([resume.file_url])
+    }
+
+    const { error: delError } = await supabase
+      .from('resumes')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+    if (delError) throw new Error(delError.message)
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Delete resume error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Auto-select Best Resume ───────────────────────────────────
+app.post('/api/auto-select-resume', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { jdText } = req.body
+    if (!jdText?.trim()) return res.status(400).json({ error: 'Missing jdText' })
+
+    const { data: resumes } = await supabase
+      .from('resumes')
+      .select('id, name, raw_text')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+
+    if (!resumes?.length) return res.status(404).json({ error: 'No resumes found' })
+    if (resumes.length === 1) return res.json({ resumeId: resumes[0].id, reason: 'Only one resume available.' })
+
+    const resumeSummaries = resumes.map((r, i) =>
+      `Resume ${i + 1} (id: ${r.id}, name: "${r.name}"):\n${r.raw_text?.slice(0, 800) || 'No text'}`
+    ).join('\n\n---\n\n')
+
+    const msg = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 256,
+      messages: [{
+        role: 'user',
+        content: `Given this job description and multiple resumes, pick the single best-matching resume.
+
+JOB DESCRIPTION:
+${jdText.slice(0, 2000)}
+
+RESUMES:
+${resumeSummaries}
+
+Return ONLY valid JSON: {"resumeId":"<the id>","reason":"<one sentence why>"}`
+      }]
+    })
+
+    const raw = msg.content[0].text.trim()
+    const result = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || raw)
+    res.json(result)
+  } catch (err) {
+    console.error('Auto-select error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ── Generate PDF ──────────────────────────────────────────────
 app.post('/api/generate-pdf', async (req, res) => {
   try {
@@ -324,14 +568,16 @@ app.post('/api/generate-pdf', async (req, res) => {
       .single()
     if (appError || !application) return res.status(404).json({ error: 'Application not found' })
 
-    const { data: resume } = await supabase
-      .from('resumes')
-      .select('profile')
-      .eq('id', application.resume_id)
-      .single()
+    const [{ data: resume }, { data: userRow }] = await Promise.all([
+      supabase.from('resumes').select('profile').eq('id', application.resume_id).single(),
+      supabase.from('users').select('profile').eq('id', user.id).single(),
+    ])
+
+    // User-saved profile takes priority over auto-parsed resume profile
+    const profile = userRow?.profile || resume?.profile || null
 
     const job = application.tailored_json
-    const html = buildResumeHTML(job, resume?.profile || null)
+    const html = buildResumeHTML(job, profile)
 
     const puppeteer = require('puppeteer')
     const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
@@ -372,16 +618,17 @@ function buildResumeHTML(job, profile) {
   const projects = job.projects || []
   const summary = job.summary || ''
 
-  // Profile defaults (fallback for old resumes without parsed profile)
-  const name = profile?.name || 'Your Name'
-  const location = profile?.location || ''
-  const phone = profile?.phone || ''
-  const email = profile?.email || ''
-  const linkedin = profile?.linkedin || null
-  const github = profile?.github || null
-  const portfolio = profile?.portfolio || null
-  const education = profile?.education || []
-  const certifications = profile?.certifications || []
+  // Profile: prefer passed-in profile, fall back to _profile embedded in tailored_json
+  const p = profile || job._profile || {}
+  const name = p.name || 'Your Name'
+  const location = p.location || ''
+  const phone = p.phone || ''
+  const email = p.email || ''
+  const linkedin = p.linkedin || null
+  const github = p.github || null
+  const portfolio = p.portfolio || null
+  const education = p.education || []
+  const certifications = p.certifications || []
 
   const contactParts = [
     location,
