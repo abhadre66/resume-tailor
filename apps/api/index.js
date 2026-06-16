@@ -253,6 +253,7 @@ RULES:
 - Only reorder bullets, lightly rephrase wording to emphasize relevant skills, and surface the most relevant content first
 - Keep all metrics exactly as they are
 - Keep project names, company names, and job titles exactly as they appear in the resume — do NOT add subtitles, descriptions, or extra text to them
+- Keep projects in the exact same order as the original resume — do NOT reorder them
 - The resume must read naturally, like a human wrote it
 - Do NOT use em dashes, en dashes, double hyphens (--), tilde (~), or fancy punctuation
 - Use plain punctuation only: commas, periods, semicolons, colons, parentheses, regular hyphens
