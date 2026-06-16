@@ -18,6 +18,11 @@ resumes/
 # Job configs (personal, not part of source)
 jobs/
 
+# Planning and internal docs
+PIPELINE.md
+LOGIC_IMPROVEMENTS.md
+PLAN.md
+
 # OS
 .DS_Store
 Thumbs.db
