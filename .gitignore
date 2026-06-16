@@ -10,6 +10,10 @@ node_modules/
 resumes/
 *.pdf
 
+# Job configs and planning docs
+jobs/
+*.md
+
 # OS
 .DS_Store
 Thumbs.db
