@@ -30,18 +30,37 @@ async function extractPdfLinks(buffer) {
     const { getDocument } = await getPdfjs()
     const data = new Uint8Array(buffer)
     const doc = await getDocument({ data, verbosity: 0 }).promise
-    const urls = new Set()
+    const links = [] // [{ text, url }]
+
     for (let i = 1; i <= doc.numPages; i++) {
       const page = await doc.getPage(i)
-      const annotations = await page.getAnnotations()
+      const [annotations, textContent] = await Promise.all([
+        page.getAnnotations(),
+        page.getTextContent(),
+      ])
+
       for (const ann of annotations) {
         const url = ann.url || ann.unsafeUrl || ann.action?.url
-        if (ann.subtype === 'Link' && url) urls.add(url)
+        if (ann.subtype !== 'Link' || !url) continue
+
+        // Find text items whose position overlaps with the link rectangle
+        const [x1, y1, x2, y2] = ann.rect
+        const matched = textContent.items
+          .filter(item => {
+            const tx = item.transform[4]
+            const ty = item.transform[5]
+            return tx >= x1 - 2 && tx <= x2 + 2 && ty >= y1 - 2 && ty <= y2 + 2
+          })
+          .map(item => item.str)
+          .join(' ')
+          .trim()
+
+        links.push({ text: matched || url, url })
       }
     }
-    const result = [...urls]
-    console.log('PDF links extracted:', result)
-    return result
+
+    console.log('PDF links extracted:', links)
+    return links
   } catch (e) {
     console.error('extractPdfLinks error:', e.message)
     return []
@@ -101,8 +120,8 @@ app.post('/api/resume/upload', upload.single('file'), async (req, res) => {
 RESUME TEXT:
 ${rawText.slice(0, 6000)}
 
-${pdfLinks.length > 0 ? `HYPERLINKS EXTRACTED FROM PDF (use these for linkedin, github, portfolio, and project links):
-${pdfLinks.join('\n')}
+${pdfLinks.length > 0 ? `HYPERLINKS EXTRACTED FROM PDF (anchor text → URL). Use anchor text to match each link to the right field — linkedin, github, portfolio, project links, certifications:
+${pdfLinks.map(l => `"${l.text}" → ${l.url}`).join('\n')}
 ` : ''}
 
 Return this exact structure:
