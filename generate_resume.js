@@ -88,6 +88,12 @@ const summary    = job.summary    || base.summary;
 const skills     = { ...base.skills, ...(job.skills || {}) };
 const experience = job.experience || base.experience;
 const projects   = job.projects   || base.projects;
+const skillSections = job.skillSections || [
+  { label: 'Languages',       key: 'languages' },
+  { label: 'ML / AI',         key: 'ml' },
+  { label: 'Systems &amp; Infra', key: 'infra' },
+  { label: 'Frontend',        key: 'frontend' },
+];
 const filename   = job.company
   ? `Abhishek_Bhadre_${job.company.replace(/\s+/g, '_')}${job.role ? '_' + job.role.replace(/\s+/g, '_') : ''}.pdf`
   : 'Abhishek_Bhadre.pdf';
@@ -237,10 +243,7 @@ const html = `<!DOCTYPE html>
   ${renderProjects(projects)}
 
   <div class="section-header">Technical Skills</div>
-  <div class="skill-row"><span class="skill-label">Languages:</span> ${skills.languages}</div>
-  <div class="skill-row"><span class="skill-label">ML / AI:</span> ${skills.ml}</div>
-  <div class="skill-row"><span class="skill-label">Systems &amp; Infra:</span> ${skills.infra}</div>
-  <div class="skill-row"><span class="skill-label">Frontend:</span> ${skills.frontend}</div>
+  ${skillSections.filter(s => skills[s.key]).map(s => `<div class="skill-row"><span class="skill-label">${s.label}:</span> ${skills[s.key]}</div>`).join('\n  ')}
 
   <div class="section-header">Certifications &amp; Achievements</div>
   <ul class="resume-list">
