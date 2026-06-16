@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+interface Certification {
+  name: string
+  url: string
+}
+
 interface Profile {
   name: string
   location: string
@@ -12,9 +17,10 @@ interface Profile {
   linkedin: string
   github: string
   portfolio: string
+  certifications: Certification[]
 }
 
-const empty: Profile = { name: '', location: '', phone: '', email: '', linkedin: '', github: '', portfolio: '' }
+const empty: Profile = { name: '', location: '', phone: '', email: '', linkedin: '', github: '', portfolio: '', certifications: [] }
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -84,6 +90,22 @@ export default function SettingsPage() {
     { key: 'portfolio', label: 'Portfolio URL',   placeholder: 'https://yoursite.com' },
   ]
 
+  function addCert() {
+    setProfile(p => ({ ...p, certifications: [...(p.certifications || []), { name: '', url: '' }] }))
+  }
+
+  function updateCert(i: number, key: 'name' | 'url', val: string) {
+    setProfile(p => {
+      const certs = [...(p.certifications || [])]
+      certs[i] = { ...certs[i], [key]: val }
+      return { ...p, certifications: certs }
+    })
+  }
+
+  function removeCert(i: number) {
+    setProfile(p => ({ ...p, certifications: (p.certifications || []).filter((_, idx) => idx !== i) }))
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <nav className="border-b border-gray-800 px-6 py-4 flex items-center gap-4">
@@ -103,13 +125,47 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-gray-300 mb-1">{f.label}</label>
               <input
                 type={f.type || 'text'}
-                value={profile[f.key]}
+                value={profile[f.key] as string}
                 onChange={e => set(f.key, e.target.value)}
                 placeholder={f.placeholder}
                 className="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition"
               />
             </div>
           ))}
+
+          {/* Certifications */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-300">Certifications & Achievements</label>
+              <button type="button" onClick={addCert} className="text-blue-400 hover:text-blue-300 text-xs transition">+ Add</button>
+            </div>
+            <div className="space-y-2">
+              {(profile.certifications || []).map((cert, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <div className="flex-1 space-y-1">
+                    <input
+                      type="text"
+                      value={cert.name}
+                      onChange={e => updateCert(i, 'name', e.target.value)}
+                      placeholder="Microsoft Certified: Azure Fundamentals (AZ-900)"
+                      className="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition"
+                    />
+                    <input
+                      type="url"
+                      value={cert.url}
+                      onChange={e => updateCert(i, 'url', e.target.value)}
+                      placeholder="https://link-to-certificate.com (optional)"
+                      className="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition"
+                    />
+                  </div>
+                  <button type="button" onClick={() => removeCert(i)} className="text-gray-500 hover:text-red-400 transition text-sm pt-2">✕</button>
+                </div>
+              ))}
+              {(profile.certifications || []).length === 0 && (
+                <p className="text-gray-600 text-xs">No certifications added yet.</p>
+              )}
+            </div>
+          </div>
 
           <div className="pt-2 flex items-center gap-4">
             <button

@@ -124,7 +124,9 @@ Return this exact structure:
         "courses": "relevant courses or null"
       }
     ],
-    "certifications": ["certification 1", "certification 2"]
+    "certifications": [
+      { "name": "Certification name", "url": "link from PDF hyperlinks or null" }
+    ]
   },
   "resume": {
     "summary": "professional summary paragraph",
@@ -724,7 +726,11 @@ function buildResumeHTML(job, profile) {
   ${certifications.length > 0 ? `
   <div class="section-header">Certifications &amp; Achievements</div>
   <ul class="resume-list">
-    ${certifications.map(c => `<li>${c}</li>`).join('\n')}
+    ${certifications.map(c => {
+      const name = typeof c === 'string' ? c : c.name
+      const url = typeof c === 'string' ? null : c.url
+      return `<li>${url ? `<a href="${url}">${name}</a>` : name}</li>`
+    }).join('\n')}
   </ul>
   ` : ''}
 </body>
