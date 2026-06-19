@@ -24,6 +24,159 @@ const supabase = createClient(
 
 const anthropic = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// ── Tool schemas forcing structured JSON output from Claude ────
+const EXPERIENCE_ITEM = {
+  type: 'object',
+  properties: {
+    company: { type: 'string' },
+    title: { type: 'string' },
+    dates: { type: 'string' },
+    bullets: { type: 'array', items: { type: 'string' } }
+  },
+  required: ['company', 'title', 'dates', 'bullets']
+}
+const PROJECT_ITEM = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    subtitle: { type: 'string' },
+    stack: { type: 'string' },
+    link: { type: ['string', 'null'] },
+    bullets: { type: 'array', items: { type: 'string' } }
+  },
+  required: ['name', 'stack', 'bullets']
+}
+
+const PARSE_RESUME_TOOL = {
+  name: 'parsed_resume',
+  description: 'Structured profile and resume content extracted from raw resume text.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      profile: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          location: { type: 'string' },
+          phone: { type: ['string', 'null'] },
+          email: { type: ['string', 'null'] },
+          linkedin: { type: ['string', 'null'] },
+          github: { type: ['string', 'null'] },
+          portfolio: { type: ['string', 'null'] },
+          education: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                school: { type: 'string' },
+                degree: { type: 'string' },
+                dates: { type: 'string' },
+                gpa: { type: ['string', 'null'] },
+                courses: { type: ['string', 'null'] }
+              }
+            }
+          },
+          certifications: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { name: { type: 'string' }, url: { type: ['string', 'null'] } }
+            }
+          }
+        }
+      },
+      resume: {
+        type: 'object',
+        properties: {
+          summary: { type: 'string' },
+          skills: { type: 'object', additionalProperties: { type: ['string', 'null'] } },
+          experience: { type: 'array', items: EXPERIENCE_ITEM },
+          projects: { type: 'array', items: PROJECT_ITEM }
+        },
+        required: ['summary', 'skills', 'experience', 'projects']
+      }
+    },
+    required: ['profile', 'resume']
+  }
+}
+
+const TAILORED_RESUME_TOOL = {
+  name: 'tailored_resume',
+  description: 'The tailored resume content for this specific job application.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      company: { type: 'string' },
+      role: { type: 'string' },
+      summary: { type: 'string' },
+      skills: { type: 'object', additionalProperties: { type: 'string' } },
+      experience: { type: 'array', items: EXPERIENCE_ITEM },
+      projects: { type: 'array', items: PROJECT_ITEM }
+    },
+    required: ['company', 'role', 'summary', 'skills', 'experience', 'projects']
+  }
+}
+
+const ATS_SCORE_TOOL = {
+  name: 'ats_score',
+  description: 'ATS keyword match score between a resume and a job description.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      score: { type: 'integer', minimum: 0, maximum: 100 },
+      matched: { type: 'array', items: { type: 'string' } },
+      missing: { type: 'array', items: { type: 'string' } }
+    },
+    required: ['score', 'matched', 'missing']
+  }
+}
+
+// ── Fabrication checks: flag (don't block) likely fabricated content ──
+const NUMBER_RE = /\$?\d+(?:\.\d+)?\s?(?:%|[KkMmXx]\+?|\+)?/g
+
+function extractNumbers(text) {
+  return new Set((text.match(NUMBER_RE) || []).map(s => s.replace(/\s/g, '').toLowerCase()))
+}
+
+function collectSourceText(source) {
+  if (!source) return ''
+  if (typeof source === 'string') return source
+  const parts = [source.summary || '']
+  for (const exp of source.experience || []) parts.push(...(exp.bullets || []))
+  for (const proj of source.projects || []) parts.push(proj.stack || '', ...(proj.bullets || []))
+  return parts.join(' \n ')
+}
+
+function collectTailoredText(tailored) {
+  const parts = [tailored.summary || '']
+  for (const exp of tailored.experience || []) parts.push(...(exp.bullets || []))
+  for (const proj of tailored.projects || []) parts.push(proj.stack || '', ...(proj.bullets || []))
+  return parts.join(' \n ')
+}
+
+function checkFabricatedNumbers(source, tailored) {
+  const allowed = extractNumbers(collectSourceText(source))
+  const found = extractNumbers(collectTailoredText(tailored))
+  return [...found].filter(n => !allowed.has(n))
+}
+
+function checkFabricatedSkills(source, tailored) {
+  const allowedText = [
+    source && typeof source === 'object' ? Object.values(source.skills || {}).join(', ') : '',
+    collectSourceText(source)
+  ].join(', ').toLowerCase()
+  const warnings = []
+  for (const [category, value] of Object.entries(tailored.skills || {})) {
+    const items = (value || '').split(',').map(s => s.trim()).filter(Boolean)
+    for (const item of items) {
+      const core = item.replace(/\s*\(.*?\)\s*/g, '').trim()
+      if (core.length < 2) continue
+      if (!allowedText.includes(core.toLowerCase())) warnings.push(`${category}: "${item}"`)
+    }
+  }
+  return warnings
+}
+
 // ── Extract hyperlink URLs from PDF annotations ───────────────
 async function extractPdfLinks(buffer) {
   try {
@@ -113,9 +266,11 @@ app.post('/api/resume/upload', upload.single('file'), async (req, res) => {
       const parseMsg = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 2048,
+        tools: [PARSE_RESUME_TOOL],
+        tool_choice: { type: 'tool', name: 'parsed_resume' },
         messages: [{
           role: 'user',
-          content: `Parse this resume text into structured JSON. Return ONLY valid JSON, no markdown.
+          content: `Parse this resume text into structured data.
 
 RESUME TEXT:
 ${rawText.slice(0, 6000)}
@@ -124,62 +279,14 @@ ${pdfLinks.length > 0 ? `HYPERLINKS EXTRACTED FROM PDF (anchor text → URL). Us
 ${pdfLinks.map(l => `"${l.text}" → ${l.url}`).join('\n')}
 ` : ''}
 
-Return this exact structure:
-{
-  "profile": {
-    "name": "Full Name",
-    "location": "City, State",
-    "phone": "phone number or null",
-    "email": "email or null",
-    "linkedin": "full LinkedIn URL or null",
-    "github": "full GitHub URL or null",
-    "portfolio": "portfolio URL or null",
-    "education": [
-      {
-        "school": "University Name",
-        "degree": "Degree and Major",
-        "dates": "date range",
-        "gpa": "GPA or null",
-        "courses": "relevant courses or null"
-      }
-    ],
-    "certifications": [
-      { "name": "Certification name", "url": "link from PDF hyperlinks or null" }
-    ]
-  },
-  "resume": {
-    "summary": "professional summary paragraph",
-    "skills": {
-      "languages": "programming languages comma separated",
-      "ml": "ML/AI/data skills comma separated or null",
-      "infra": "infrastructure/devops/backend skills comma separated or null",
-      "frontend": "frontend skills comma separated or null"
-    },
-    "experience": [
-      {
-        "company": "Company Name",
-        "title": "Job Title",
-        "dates": "date range",
-        "bullets": ["bullet 1", "bullet 2"]
-      }
-    ],
-    "projects": [
-      {
-        "name": "Project Name",
-        "subtitle": "short project subtitle",
-        "stack": "tech stack",
-        "link": "URL or null",
-        "bullets": ["bullet 1", "bullet 2"]
-      }
-    ]
-  }
-}`
+Call the parsed_resume tool with the extracted profile and resume content.`
         }]
       })
-      const parseRaw = parseMsg.content[0].text.trim()
-      const parsed = JSON.parse(parseRaw.match(/\{[\s\S]*\}/)?.[0] || parseRaw)
-      profile = parsed.profile || null
-      parsedJson = parsed.resume || null
+      const toolUse = parseMsg.content.find(b => b.type === 'tool_use')
+      if (toolUse) {
+        profile = toolUse.input.profile || null
+        parsedJson = toolUse.input.resume || null
+      }
     } catch (e) {
       console.error('Resume parse failed (non-fatal):', e.message)
     }
@@ -246,7 +353,13 @@ app.post('/api/tailor', async (req, res) => {
       .single()
     if (resumeError || !resume) return res.status(404).json({ error: 'Resume not found' })
 
-    const prompt = `You are a professional resume tailoring assistant. Given a candidate's resume (as extracted text) and a job description, tailor the resume to best match the role.
+    // Ground tailoring in the clean structured data parsed at upload time when
+    // available, instead of re-deriving skills/summary from noisy raw PDF text every call.
+    const sourceResume = resume.parsed_json
+      ? JSON.stringify(resume.parsed_json, null, 2)
+      : resume.raw_text
+
+    const prompt = `You are a professional resume tailoring assistant. Given a candidate's resume and a job description, tailor the resume to best match the role.
 
 RULES:
 - Never invent or fabricate achievements, metrics, or technologies the candidate did not use
@@ -254,13 +367,14 @@ RULES:
 - Keep all metrics exactly as they are
 - Keep project names, company names, and job titles exactly as they appear in the resume — do NOT add subtitles, descriptions, or extra text to them
 - Keep projects in the exact same order as the original resume — do NOT reorder them
+- Every individual skill, tool, or technology you output must already appear in the candidate's skills list below OR be explicitly named in an experience/project bullet or stack line below. Never introduce a skill term that isn't grounded in the content below.
+- The tailored summary must only restate facts already present in the source resume below. Do not introduce new claims.
 - The resume must read naturally, like a human wrote it
 - Do NOT use em dashes, en dashes, double hyphens (--), tilde (~), or fancy punctuation
 - Use plain punctuation only: commas, periods, semicolons, colons, parentheses, regular hyphens
-- Return ONLY valid JSON with no markdown, no code blocks, no explanation
 
 CANDIDATE RESUME:
-${resume.raw_text}
+${sourceResume}
 
 ${resume.parsed_json?.projects?.length ? `PROJECT LINKS (preserve these exactly in your output):
 ${resume.parsed_json.projects.map(p => `- ${p.name}: ${p.link || 'null'}`).join('\n')}
@@ -268,51 +382,27 @@ ${resume.parsed_json.projects.map(p => `- ${p.name}: ${p.link || 'null'}`).join(
 JOB DESCRIPTION:
 ${jdText}
 
-Return a JSON object with this exact structure:
-{
-  "company": "CompanyName (no spaces, use underscores)",
-  "role": "Role_Name (no spaces, use underscores)",
-  "summary": "2-3 sentence tailored professional summary for this specific role",
-  "skills": {
-    "languages": "programming languages list, most relevant to this JD first",
-    "ml": "ML/AI skills list, most relevant to this JD first",
-    "infra": "infrastructure/systems skills, most relevant to this JD first",
-    "frontend": "frontend skills list"
-  },
-  "experience": [
-    {
-      "company": "company name",
-      "title": "job title",
-      "dates": "date range",
-      "bullets": ["reordered/rephrased bullets, most relevant to this JD first"]
-    }
-  ],
-  "projects": [
-    {
-      "name": "project name",
-      "subtitle": "project subtitle",
-      "stack": "tech stack",
-      "link": "original link unchanged",
-      "bullets": ["reordered/rephrased bullets, most relevant to this JD first"]
-    }
-  ]
-}`
+Call the tailored_resume tool with the tailored content.`
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
+      tools: [TAILORED_RESUME_TOOL],
+      tool_choice: { type: 'tool', name: 'tailored_resume' },
       messages: [{ role: 'user', content: prompt }]
     })
 
-    const raw = message.content[0].text.trim()
-    let tailored
-    try {
-      tailored = JSON.parse(raw)
-    } catch {
-      const match = raw.match(/\{[\s\S]*\}/)
-      if (!match) throw new Error('Claude returned invalid JSON')
-      tailored = JSON.parse(match[0])
-    }
+    const tailorToolUse = message.content.find(b => b.type === 'tool_use')
+    if (!tailorToolUse) throw new Error('Claude did not return structured tool output')
+    const tailored = tailorToolUse.input
+
+    const warnings = [
+      ...checkFabricatedNumbers(resume.parsed_json || resume.raw_text, tailored)
+        .map(n => `Possible fabricated metric: "${n}"`),
+      ...checkFabricatedSkills(resume.parsed_json || resume.raw_text, tailored)
+        .map(s => `Possible fabricated skill: ${s}`)
+    ]
+    if (warnings.length) console.warn(`Tailor warnings for resume ${resumeId}:`, warnings)
 
     // Preserve project links from parsed_json — pdf2json can't extract hyperlink URLs
     // so Claude Sonnet won't have them in raw_text; merge them back in from upload-time parse
@@ -345,6 +435,8 @@ Return a JSON object with this exact structure:
       const atsMessage = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 512,
+        tools: [ATS_SCORE_TOOL],
+        tool_choice: { type: 'tool', name: 'ats_score' },
         messages: [{
           role: 'user',
           content: `You are an ATS analyzer. Extract the 10-15 most important technical skills, tools, and keywords from this job description. Then check which ones appear in the resume JSON.
@@ -355,14 +447,13 @@ ${jdText.slice(0, 3000)}
 RESUME (JSON):
 ${JSON.stringify({ summary: tailored.summary, skills: tailored.skills, experience: tailored.experience?.map(e => ({ bullets: e.bullets })), projects: tailored.projects?.map(p => ({ stack: p.stack, bullets: p.bullets })) })}
 
-Return ONLY valid JSON, no markdown:
-{"score":<0-100 integer>,"matched":["keyword",...],"missing":["keyword",...]}`
+Call the ats_score tool with the score and matched/missing keywords.`
         }]
       })
-      const atsRaw = atsMessage.content[0].text.trim()
-      const atsParsed = JSON.parse(atsRaw.match(/\{[\s\S]*\}/)?.[0] || atsRaw)
-      atsScore = atsParsed.score
-      atsDetails = { matched: atsParsed.matched || [], missing: atsParsed.missing || [] }
+      const atsToolUse = atsMessage.content.find(b => b.type === 'tool_use')
+      if (!atsToolUse) throw new Error('Claude did not return structured tool output')
+      atsScore = atsToolUse.input.score
+      atsDetails = { matched: atsToolUse.input.matched || [], missing: atsToolUse.input.missing || [] }
     } catch (e) {
       console.error('ATS scoring failed (non-fatal):', e.message)
     }
@@ -386,7 +477,7 @@ Return ONLY valid JSON, no markdown:
       .single()
     if (appError) throw new Error(`Database error: ${appError.message}`)
 
-    res.json({ success: true, applicationId: application.id, tailored, atsScore, atsDetails })
+    res.json({ success: true, applicationId: application.id, tailored, atsScore, atsDetails, warnings })
   } catch (err) {
     console.error('Tailor error:', err.message)
     res.status(500).json({ error: err.message || 'Tailoring failed' })

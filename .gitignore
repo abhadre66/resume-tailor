@@ -21,6 +21,7 @@ jobs/
 # Personal CLI scripts
 tailor.js
 generate_resume.js
+base_resume.js
 
 # Planning and internal docs
 PIPELINE.md
