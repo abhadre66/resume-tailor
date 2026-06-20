@@ -30,15 +30,11 @@ to the person about to skim it for six seconds.
 apps/
   web/      Next.js frontend — auth, upload, tailor, results, ATS view
   api/      Express backend — parsing, tailoring, PDF generation, scoring
-tailor.js           Personal CLI tool (gitignored) — same idea, zero UI
-generate_resume.js   PDF renderer for the CLI path
 supabase_schema.sql  users / resumes / applications
 ```
 
-Two parallel implementations of one idea: a multi-user product
-(`apps/`) for anyone, and a fast, no-frills CLI (`tailor.js`) for one
-person applying to a lot of jobs in a hurry. They don't share code,
-but they share a philosophy — tailor aggressively, fabricate nothing.
+One product, built so anyone can upload their resume and get it
+tailored — not a one-off script for a single person's job hunt.
 
 ## Stack
 
