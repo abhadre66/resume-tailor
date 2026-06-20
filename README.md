@@ -2,6 +2,8 @@
 
 *Your resume, rewritten in the time it takes to read this sentence.*
 
+**Live: [resume-tailor-git-main-abhibhadres-projects.vercel.app](https://resume-tailor-git-main-abhibhadres-projects.vercel.app/)**
+
 You've found the job. Now your resume needs to stop sounding like a
 general statement of who you are and start sounding like the exact
 person that job is looking for. ResumeAI reads the job description,
@@ -9,6 +11,14 @@ reads your real experience, and rewrites the overlap — same facts,
 same metrics, just pointed at the right target. No invented skills.
 No exaggerated bullet points. Just your work, reordered to make sense
 to the person about to skim it for six seconds.
+
+<p align="center">
+  <img src="docs/screenshots/landing.png" alt="ResumeAI landing page" width="800">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/login.png" alt="ResumeAI sign in" width="400">
+</p>
 
 ## How it thinks
 
